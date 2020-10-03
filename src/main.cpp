@@ -8,6 +8,7 @@ rgbled* rgb;
 void setup() {
     init_framework();
     delay(1000);
+    delay(100);
     rgb = new rgbled();
     rgb->setColor(0, 0, 255);
     delay(1000);
