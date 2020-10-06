@@ -63,6 +63,8 @@ This framework is written in C++, so you MUST have C++ basic before starting
 ### felixmeter
 - felixmeter(port number of line follower) - initialize the felixmeter
 - run(sector, m1, m2) - run at m1 m2 until reach targeted sector
+## Example
+The example is written in the main.cpp
 ## remind
 - If you want to make the code into release mode which make the code run faster, please disable the debug mode by commnect the code at hw/config/h line 11 to 14
 - If the code is too big or the RAM is not enough, release mode also can be enable to release some compute resource.

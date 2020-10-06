@@ -3,16 +3,16 @@
 #include <Arduino.h>
 
 button btn;
-rgbled* rgb;
+rgbled rgb;
 
 void setup() {
     init_framework();
-    delay(1000);
-    rgb = new rgbled();
-    rgb->setColor(0, 0, 255);
-    delay(1000);
-    btn.waitForPress();
 }
 
 void loop() {
+    if (btn.is_pressed()) {
+        rgb.setColor(255, 0, 0);
+    } else {
+        rgb.setColor(0, 255, 0);
+    }
 }
