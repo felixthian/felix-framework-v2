@@ -22,13 +22,13 @@ terminal::terminal(int port_num, int felixmeter_port) : fserial(port_num), rgble
             debug->log(receive);
 #endif
             if (strstr(String(receive).c_str(), "forward")) {
-                felixmeter::run(4, 120, 120);
+                felixmeter::run(4, 120, 120, 120);
             } else if (strstr(String(receive).c_str(), "backward")) {
-                felixmeter::run(4, -120, -120);
+                felixmeter::run(4, -120, -120, 120);
             } else if (strstr(String(receive).c_str(), "left")) {
-                felixmeter::run(7, 0, 120);
+                felixmeter::run(7, 0, 120, 120);
             } else if (strstr(String(receive).c_str(), "right")) {
-                felixmeter::run(7, 0, -120);
+                felixmeter::run(7, 0, -120, 120);
             } else if (strstr(String(receive).c_str(), "tone")) {
                 buzzer::tone(1000, 100);
             }

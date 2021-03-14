@@ -4,15 +4,16 @@
 
 button btn;
 rgbled rgb;
+felixmeter* fm;
 
 void setup() {
     init_framework();
+
+    fm = new felixmeter(1);
+
+    fm->reaccurate();
+    fm->run(8, 255, 255, 100);
 }
 
 void loop() {
-    if (btn.is_pressed()) {
-        rgb.setColor(255, 0, 0);
-    } else {
-        rgb.setColor(0, 255, 0);
-    }
 }

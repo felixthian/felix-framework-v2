@@ -4,12 +4,13 @@
 #include "../hw/linefollower.h"
 #include "../hw/motor.h"
 #include "../hw/port.h"
+#include "../hw/config.h"
 
 class felixmeter : private linefollower, private motor {
    public:
     felixmeter(int port_num);
     void reaccurate();
-    void run(int sector, int16_t m1, int16_t m2);
+    void run(int sector, int16_t m1, int16_t m2, int16_t brake_speed);
 
    private:
     int swap(int state);

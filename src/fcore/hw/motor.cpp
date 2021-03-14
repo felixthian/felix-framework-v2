@@ -21,3 +21,9 @@ void motor::run(int16_t m1, int16_t m2) {
     analogWrite(6, abs(m1));
     analogWrite(5, abs(m2));
 }
+
+void motor::smooth_run(int16_t m1, int16_t m2) {
+    run(255, 255);
+    delay(10);
+    run(m1, m2);
+}

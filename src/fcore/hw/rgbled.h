@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include "FastLED/FastLED.h"
+#include <FastLED.h>
 
 enum sides { left, right };
 
