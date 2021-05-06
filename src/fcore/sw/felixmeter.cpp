@@ -1,75 +1,133 @@
 #include "felixmeter.h"
 
-felixmeter::felixmeter(int port_num) : linefollower(port_num), motor() {}
+int felixmeter::felixmeterReadSensor() {
+    if (side == s1) {
+        return linefollower::readSensor1();
+    } else {
+        return linefollower::readSensor2();
+    }
+    return 9487;
+}
+
+felixmeter::felixmeter(int port_num, bool side) : linefollower(port_num), motor() {
+    availablePID = false;
+}
 
 void felixmeter::reaccurate() {
     motor::run(120, 120);
-    int now = linefollower::readSensor2();
-    int target = swap(now);
-    while (now != target) {
-        now = linefollower::readSensor2();
-    }
-    motor::run(0, 0);
 }
 
-int felixmeter::swap(int state) {
+int swap(int state) {
     if (state == HIGH) {
         return LOW;
-    } else if (state == LOW) {
+    }
+    if (state == LOW) {
         return HIGH;
     }
     return 9487;
 }
 
 void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
-    int now = linefollower::readSensor2();
-    int target = now;
-    motor::smooth_run(m1, m2);
-    for (int i = 0; i < sector; i++) {
-        if (i > (sector / 2)) {
-            motor::run(constrain(m1, -brake_speed, brake_speed), constrain(m2, -brake_speed, brake_speed));
-        }
-        while (target != now) {
-            if (linefollower::readSensor2() == linefollower::readSensor1()) {
-                now = linefollower::readSensor2();
+    if (!availablePID) {
+        int travelledStep = 0;
+        int nextStepState = swap(felixmeterReadSensor());
+        bool isMotorReverse = false;
+        motor::run(m1, m2);
+        float lasttime = millis();
+        double fix = 0;
+        bool isDone = false;
+        int repeatTarget = 0;
+        while (!isDone) {
+            if (felixmeterReadSensor() == nextStepState) {
+                nextStepState = swap(nextStepState);
+                if (isMotorReverse) {
+                    travelledStep--;
+                } else {
+                    travelledStep++;
+                }
             }
-        }
-        target = swap(target);
-        while (target != now) {
-            if (linefollower::readSensor2() == linefollower::readSensor1()) {
-                now = linefollower::readSensor2();
-            }
-        }
-        // motor::run(0, 0);
-        target = swap(target);
-        // delay(200);
-    }
-    motor::run(0, 0);
-    delay(100);
-    bool is_brake_need = true;
-    while (is_brake_need) {
-        #ifdef DEBUG
-            debug->log_no_newline(F("brake called: "));
-        #endif
-        is_brake_need = false;
-        int lock = linefollower::readSensor2();
-        motor::run(0, 0);
-        delay(100);
-        while (lock != linefollower::readSensor2() || lock != linefollower::readSensor1()) {
-            motor::run(-constrain(m1, -brake_speed, brake_speed), -constrain(m2, -brake_speed, brake_speed));
-            is_brake_need = true;
-        }
-        motor::run(constrain(m1, -brake_speed, brake_speed), constrain(m2, -brake_speed, brake_speed));
-        delay(10);
-        motor::run(0, 0);
-        #ifdef DEBUG
-            if (is_brake_need) {
-                debug->log(F("true"));
+
+            if (travelledStep > sector) {
+                fix = -1;
+            } else if (travelledStep == sector) {
+                fix = 0;
             } else {
-                debug->log(F("false"));
+                fix = 1;
             }
-        #endif
-        
+            motor::run((int16_t)(double)m1 * constrain(fix, -1.0, 1.0), (int16_t)(double)m2 * constrain(fix, -1.0, 1.0));
+            if (fix < 0) {
+                isMotorReverse = true;
+            } else {
+                isMotorReverse = false;
+            }
+
+            if ((millis() - lasttime) > 100) {
+                lasttime = millis();
+                //Serial.print("travelled step: ");
+                Serial.println(travelledStep, DEC);
+                //Serial.print("fix: ");
+                //Serial.print(fix, DEC);
+                //Serial.print("\n");
+                if (travelledStep == sector) {
+                    repeatTarget++;
+                    if (repeatTarget >= 3) {
+                        isDone = true;
+                    }
+                } else {
+                    repeatTarget = 0;
+                }
+            }
+        }
+        motor::run(0, 0);
+    } else {
+        int travelledStep = 0;
+        int nextStepState = swap(felixmeterReadSensor());
+        bool isMotorReverse = false;
+        motor::run(m1, m2);
+        float lasttime = millis();
+        Serial.println(sector, DEC);
+        pid_control->readyPID();
+        bool isDone = false;
+        int repeatTarget = 0;
+        while (!isDone) {
+            if (felixmeterReadSensor() == nextStepState) {
+                nextStepState = swap(nextStepState);
+                if (isMotorReverse) {
+                    travelledStep--;
+                } else {
+                    travelledStep++;
+                }
+            }
+
+            if ((millis() - lasttime) > 100) {
+                double fix = pid_control->computePID((double)sector, travelledStep);
+                motor::run((int16_t)(double)m1 * constrain(fix, -1.0, 1.0), (int16_t)(double)m2 * constrain(fix, -1.0, 1.0));
+                if (fix < 0) {
+                    isMotorReverse = true;
+                } else {
+                    isMotorReverse = false;
+                }
+                lasttime = millis();
+                //Serial.print("travelled step: ");
+                Serial.println(travelledStep, DEC);
+                //Serial.print("fix: ");
+                //Serial.print(fix, DEC);
+                //Serial.print("\n");
+                if (travelledStep == sector) {
+                    repeatTarget++;
+                    if (repeatTarget >= 3) {
+                        isDone = true;
+                    }
+                } else {
+                    repeatTarget = 0;
+                }
+            }
+        }
+        motor::run(0, 0);
     }
-    motor::run(0, 0);
+}
+
+void felixmeter::bindPID(PID *pid) {
+    pid_control = pid;
+    availablePID = true;
 }

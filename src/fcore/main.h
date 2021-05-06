@@ -18,6 +18,6 @@
 //software layer
 #include "sw/serial.h"
 #include "sw/felixmeter.h"
-#include "sw/terminal.h"
+#include "sw/voltmeter.h"
 
 #endif
