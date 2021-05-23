@@ -3,7 +3,6 @@
 #include "config.h"
 
 rgbled::rgbled() {
-    Serial.begin(115200);
     FastLED.addLeds<WS2812, 13, GRB>(led, 2);
 }
 

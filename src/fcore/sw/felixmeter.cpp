@@ -2,14 +2,18 @@
 
 int felixmeter::felixmeterReadSensor() {
     if (side == s1) {
+        //Serial.println(F("s1 read"));
         return linefollower::readSensor1();
     } else {
+        //Serial.println(F("s2 read"));
         return linefollower::readSensor2();
     }
+    //Serial.println(F("s3 read"));
     return 9487;
 }
 
-felixmeter::felixmeter(int port_num, bool side) : linefollower(port_num), motor() {
+felixmeter::felixmeter(int port_num, bool side_sensor) : linefollower(port_num), motor() {
+    side = side_sensor;
     availablePID = false;
 }
 
@@ -27,7 +31,7 @@ int swap(int state) {
     return 9487;
 }
 
-void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
+void felixmeter::run(int sector, int16_t m1, int16_t m2, float brake_speed) {
     if (!availablePID) {
         int travelledStep = 0;
         int nextStepState = swap(felixmeterReadSensor());
@@ -37,6 +41,7 @@ void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
         double fix = 0;
         bool isDone = false;
         int repeatTarget = 0;
+        int slowingStep = sector / 2;
         while (!isDone) {
             if (felixmeterReadSensor() == nextStepState) {
                 nextStepState = swap(nextStepState);
@@ -44,6 +49,7 @@ void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
                     travelledStep--;
                 } else {
                     travelledStep++;
+                    //travelledStep--;
                 }
             }
 
@@ -54,7 +60,11 @@ void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
             } else {
                 fix = 1;
             }
-            motor::run((int16_t)(double)m1 * constrain(fix, -1.0, 1.0), (int16_t)(double)m2 * constrain(fix, -1.0, 1.0));
+            if (abs(travelledStep - sector) > slowingStep) {
+                motor::run((int16_t)(double)m1 * constrain(fix, -1.0, 1.0), (int16_t)(double)m2 * constrain(fix, -1.0, 1.0));
+            } else {
+                motor::run((int16_t)(double)m1 * brake_speed * constrain(fix, -1.0, 1.0), (int16_t)(double)m2 * brake_speed * constrain(fix, -1.0, 1.0));
+            }
             if (fix < 0) {
                 isMotorReverse = true;
             } else {
@@ -63,14 +73,10 @@ void felixmeter::run(int sector, int16_t m1, int16_t m2, int16_t brake_speed) {
 
             if ((millis() - lasttime) > 100) {
                 lasttime = millis();
-                //Serial.print("travelled step: ");
                 Serial.println(travelledStep, DEC);
-                //Serial.print("fix: ");
-                //Serial.print(fix, DEC);
-                //Serial.print("\n");
                 if (travelledStep == sector) {
                     repeatTarget++;
-                    if (repeatTarget >= 3) {
+                    if (repeatTarget >= 5) {
                         isDone = true;
                     }
                 } else {

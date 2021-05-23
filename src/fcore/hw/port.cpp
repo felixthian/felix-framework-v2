@@ -65,7 +65,7 @@ port_t port::get_port() {
     debug->log_no_newline(String(pin.s1));
     debug->log_no_newline(F(" s2: "));
     debug->log_no_newline(String(pin.s2));
-    debug->log_no_newline(F("\n"));
+    debug->log_no_newline(F("\n\r"));
 #endif
     return pin;
 }

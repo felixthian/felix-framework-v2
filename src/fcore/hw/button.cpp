@@ -3,7 +3,7 @@
 button::button() { pinMode(A7, INPUT); }
 
 bool button::is_pressed() {
-    if (analogRead(A7) != 0) {
+    if (analogRead(A7) > 100) {
         return false;
     } else {
         return true;

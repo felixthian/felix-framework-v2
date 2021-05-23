@@ -49,9 +49,10 @@ class rgblinefollower : private port {
     rgblinefollower(int port_num, uint8_t address);
     int8_t setRGBColour(uint8_t colour);
     uint8_t getPositionState(void);
+    void updataAllSensorValue(void);
 
    private:
-    void updataAllSensorValue(void);
+    
     int8_t writeData(uint8_t start, const uint8_t *pData, uint8_t size);
     int8_t readData(uint8_t start, uint8_t *buffer, uint8_t size);
     int8_t writeReg(uint8_t reg, uint8_t data);

@@ -14,10 +14,13 @@
 #include "hw/bt.h"
 #include "hw/4dotLineFollower.h"
 #include "hw/ultrasonic.h"
+#include "hw/RGBmatrix.h"
 
 //software layer
 #include "sw/serial.h"
 #include "sw/felixmeter.h"
 #include "sw/voltmeter.h"
+#include "sw/mode_selector.h"
+#include "sw/line_following_algorithm.hpp"
 
 #endif

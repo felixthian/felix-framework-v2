@@ -9,9 +9,9 @@
 
 class felixmeter : private linefollower, private motor {
    public:
-    felixmeter(int port_num, bool side);
+    felixmeter(int port_num, bool side_sensor);
     void reaccurate();
-    void run(int sector, int16_t m1, int16_t m2, int16_t brake_speed);
+    void run(int sector, int16_t m1, int16_t m2, float brake_speed);
     void bindPID(PID *pid);
 
    private:
